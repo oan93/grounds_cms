@@ -6,7 +6,7 @@ class RevcatService {
 
     const headers = {
       "Content-Type": "application/json",
-      Authorization: `Bearer sk_QesVelsWHTNphQBAZeeIszGngUXdE`,
+      Authorization: ``,
     };
 
     const attributes = {
