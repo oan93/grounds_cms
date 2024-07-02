@@ -1,187 +1,37 @@
 import _isEmpty from "lodash/isEmpty";
 import { ApiResponse, UserData } from "../Utils/types";
-import { admin, db } from "./getFirebase";
+import { db } from "./getFirebase";
 
 class UserService {
-  async updateAuthUserEmail(oldEmail: string, newEmail: string) {
-    if (!oldEmail || !newEmail) {
-      return {
-        success: false,
-        data: null,
-        error: {
-          message: "Email field is required",
-        },
-      };
-    }
+  async getUserByEmail(email: string): Promise<ApiResponse<UserData>> {
     try {
-      const user = await admin.auth().getUserByEmail(oldEmail);
+      const snapShotRef = db.collection("users");
+      const querySnapshot = await snapShotRef.where("email", "==", email).get();
 
-      if (!user) {
+      const user: unknown[] = [];
+
+      if (querySnapshot.docs.length === 0) {
         return {
           success: false,
+          error: { message: "doc does not exist" },
           data: null,
-          error: {
-            message: "Could not find user",
-          },
         };
       }
 
-      const uid = user.uid;
-
-      if (!uid) {
-        return {
-          success: false,
-          data: null,
-          error: {
-            message: "Uid field is required",
-          },
-        };
-      }
-
-      const updateEmailRes = await admin.auth().updateUser(uid, {
-        email: newEmail,
+      querySnapshot.forEach((doc) => {
+        user.push({ ...doc.data(), docId: doc.id });
       });
-
-      const updateEmailFromFirestore = await admin
-        .firestore()
-        .collection("users")
-        .doc(uid)
-        .update({
-          email: newEmail,
-        });
 
       return {
         success: true,
         error: null,
-        data: {
-          updateEmailFromFirestore,
-          ...updateEmailRes,
-          objectType: "users",
-        },
+        data: { ...(user[0] as UserData), objectType: "user" },
       };
     } catch (error) {
-      console.log("got this error", error);
-      return {
-        success: false,
-        data: null,
-        error: {
-          message: "This is the Error: ",
-          error,
-        },
-      };
+      console.log("Error getting documents: ", error);
+      return { success: false, error, data: null };
     }
   }
-
-  async updateAuthPassword(
-    oldPassword: string,
-    newPassword: string,
-    email: string
-  ) {
-    if (!oldPassword || !newPassword) {
-      return {
-        success: false,
-        data: null,
-        error: {
-          message: "Password field is required",
-        },
-      };
-    }
-    try {
-      const user = await admin.auth().getUserByEmail(email);
-
-      if (!user) {
-        return {
-          success: false,
-          data: null,
-          error: {
-            message: "Could not find user",
-          },
-        };
-      }
-
-      const uid = user.uid;
-
-      if (!uid) {
-        return {
-          success: false,
-          data: null,
-          error: {
-            message: "Uid field is required",
-          },
-        };
-      }
-
-      const updatePasswordRes = await admin.auth().updateUser(uid, {
-        password: newPassword,
-      });
-
-      const updatePasswordFromFirestore = await admin
-        .firestore()
-        .collection("users")
-        .doc(uid)
-        .update({
-          password: newPassword,
-        });
-
-      return {
-        success: true,
-        error: null,
-        data: {
-          updatePasswordFromFirestore,
-          ...updatePasswordRes,
-          objectType: "users",
-        },
-      };
-    } catch (error) {
-      console.log("got this error", error);
-      return {
-        success: false,
-        data: null,
-        error: {
-          message: "This is the Error: ",
-          error,
-        },
-      };
-    }
-  }
-
-  async getUserFromFirestore(email: string): Promise<ApiResponse<UserData>> {
-    console.log(email);
-
-    if (!email) {
-      return {
-        success: false,
-        data: null,
-        error: {
-          message: "Email is required",
-        },
-      };
-    }
-
-    const snapShotRef = db.collection("users");
-    const querySnapshot = await snapShotRef.where("email", "==", email).get();
-
-    const user: unknown[] = [];
-
-    if (querySnapshot.docs.length === 0) {
-      return {
-        success: false,
-        data: null,
-        error: {
-          message: "document does not exist",
-        },
-      };
-    }
-
-    querySnapshot.forEach((doc) => user.push({ ...doc.data(), docId: doc.id }));
-
-    return {
-      success: true,
-      error: null,
-      data: { ...(user[0] as UserData), objectType: "user" },
-    };
-  }
-
   async updateUser(
     userData: Partial<UserData>
   ): Promise<ApiResponse<Partial<UserData>>> {

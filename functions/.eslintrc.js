@@ -21,13 +21,24 @@ module.exports = {
     "/lib/**/*", // Ignore built files.
     "/generated/**/*", // Ignore generated files.
   ],
-  plugins: [
-    "@typescript-eslint",
-    "import",
-  ],
+  plugins: ["@typescript-eslint", "import"],
   rules: {
-    "quotes": ["error", "double"],
+    quotes: ["error", "double"],
     "import/no-unresolved": 0,
-    "indent": ["error", 2],
+    "object-curly-spacing": "off",
+    "max-len": "off",
+    "@typescript-eslint/no-explicit-any": "off",
+    "quote-props": "off",
+    "@typescript-eslint/no-var-requires": "off",
+    "new-cap": "off",
+    "spaced-comment": "off",
+    indent: "off",
+    camelcase: "off",
+    "operator-linebreak": "off",
+    "require-jsdoc": "off",
+    "@typescript-eslint/ban-ts-ignore": "off",
+    "@typescript-eslint/ban-ts-comment": "off",
+    "padded-blocks": "off",
+    "linebreak-style": "off",
   },
 };

@@ -1,4 +1,4 @@
-import admin = require('firebase-admin');
+import admin = require("firebase-admin");
 import serviceAccount from "../../../service_account_key.json";
 
 // Initialize the Firebase Admin SDK with the service account credentials
