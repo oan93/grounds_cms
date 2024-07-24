@@ -1,14 +1,26 @@
 import { Request, Response } from "express";
 import adminService from "../Lib/firebase/AdminService";
+import { UserData } from "../Lib/Utils/types";
 
 const updateEmail = async (req: Request, res: Response) => {
+  console.log("im here");
   const { oldEmail, newEmail } = req.body;
 
   const getUserRes = await adminService.getUserByEmail(oldEmail);
-  const response = adminService.updateAuthUserEmail(
+
+  if (!getUserRes.success) {
+    res.json({
+      success: false,
+      data: null,
+      error: {
+        message: "User Data not found",
+      },
+    });
+  }
+  const response = await adminService.updateAuthUserEmail(
     oldEmail,
     newEmail,
-    getUserRes
+    getUserRes.data as UserData
   );
 
   res.json(response);
@@ -17,7 +29,7 @@ const updateEmail = async (req: Request, res: Response) => {
 const updatePassword = async (req: Request, res: Response) => {
   const { oldPassword, newPassword, email } = req.body;
 
-  const response = adminService.updateAuthPassword(
+  const response = await adminService.updateAuthPassword(
     oldPassword,
     newPassword,
     email
@@ -32,4 +44,11 @@ const getUserByEmail = async (req: Request, res: Response) => {
   res.json(response);
 };
 
-export { getUserByEmail, updateEmail, updatePassword };
+const deleteUser = async (req: Request, res: Response) => {
+  const uid = req.body.userID;
+
+  const response = await adminService.deleteUser(uid);
+  res.json(response);
+};
+
+export { deleteUser, getUserByEmail, updateEmail, updatePassword };

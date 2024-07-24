@@ -18,7 +18,7 @@ const sendToRevenueCat = async (data: RevenueCatPayload) => {
   try {
     const res = await axios.post(url, data, headers);
 
-    console.log("revenue Cat success response");
+    console.log("revenue Cat success response", res);
     return { success: true, error: null, revCatres: res?.data };
   } catch (err) {
     console.log("revenue Cat axios error", err);

@@ -1,12 +1,16 @@
-import _get from "lodash/get";
+const _get = require("lodash/get");
+import { STRIPE_SECRET_KEY } from "../Constants/constants";
 import sendToRevenueCat from "../Utils/RevcatService";
+import { ApiResponse, UserData } from "../Utils/types";
 import { admin, db } from "./getFirebase";
+
+const stripe = require("stripe")(STRIPE_SECRET_KEY);
 
 class UserService {
   async updateAuthUserEmail(
     oldEmail: string,
     newEmail: string,
-    getUserRes: any
+    user: UserData
   ) {
     if (!oldEmail || !newEmail) {
       return {
@@ -17,20 +21,9 @@ class UserService {
         },
       };
     }
+
     try {
-      const user = getUserRes;
-
-      if (!user) {
-        return {
-          success: false,
-          data: null,
-          error: {
-            message: "Could not find user",
-          },
-        };
-      }
-
-      const uid = user.userID;
+      const { userID: uid = "", subscriptionId = "", customerId = "" } = user;
 
       if (!uid) {
         return {
@@ -42,11 +35,11 @@ class UserService {
         };
       }
 
-      const updateEmailRes = await admin.auth().updateUser(uid, {
+      const updateEmailPromise = admin.auth().updateUser(uid, {
         email: newEmail,
       });
 
-      const updateEmailFromFirestore = await admin
+      const updateFirestorePromise = admin
         .firestore()
         .collection("users")
         .doc(uid)
@@ -54,42 +47,76 @@ class UserService {
           email: newEmail,
         });
 
-      const { customerId = "", subscriptionId = "" } = _get(user, "data", {});
-
       if (!customerId || !subscriptionId) {
         return {
           success: false,
           error: {
-            message: "Customer Id or Subscription Id does not exists",
+            message: "Customer Id or Subscription Id does not exist",
           },
           user,
         };
       }
 
-      // const customer = await stripe.customers.update(customerId, {
-      //   email: emailToAdd,
-      //   metadata: {
-      //     email: emailToAdd,
-      //     oldEmail: emailToDelete,
-      //     updatedEmail: true,
-      //   },
-      // });
+      const updateEmailfromStripe = stripe.customers.update(customerId, {
+        email: newEmail,
+        metadata: {
+          email: newEmail,
+          oldEmail: oldEmail,
+          updatedEmail: true,
+        },
+      });
 
-      const revenueCatRes = await sendToRevenueCat({
+      const revenueCatPromise = sendToRevenueCat({
         app_user_id: newEmail,
         fetch_token: subscriptionId,
       });
 
-      return {
-        success: true,
-        error: null,
-        data: {
-          updateEmailFromFirestore,
-          ...revenueCatRes,
-          ...updateEmailRes,
-          objectType: "users",
-        },
-      };
+      return Promise.allSettled([
+        updateEmailPromise,
+        updateFirestorePromise,
+        updateEmailfromStripe,
+        revenueCatPromise,
+      ]).then((results) => {
+        const [
+          updateEmailRes,
+          updateFirestoreRes,
+          updateEmailfromStripe,
+          revenueCatRes,
+        ] = results;
+
+        const allSuccess = results.every(
+          (result) => result.status === "fulfilled"
+        );
+
+        if (allSuccess) {
+          return {
+            success: true,
+            error: null,
+            data: {
+              updateEmailFromFirestore: (
+                updateFirestoreRes as PromiseFulfilledResult<any>
+              ).value,
+              ...(updateEmailfromStripe as PromiseFulfilledResult<any>).value,
+              ...(revenueCatRes as PromiseFulfilledResult<any>).value,
+              ...(updateEmailRes as PromiseFulfilledResult<any>).value,
+              objectType: "users",
+            },
+          };
+        } else {
+          return {
+            success: false,
+            error: {
+              message: "Some operations failed",
+              results: results.map((result) => ({
+                status: result.status,
+                value: result.status === "fulfilled" ? result.value : null,
+                reason: result.status === "rejected" ? result.reason : null,
+              })),
+            },
+            data: null,
+          };
+        }
+      });
     } catch (error) {
       console.log("got this error", error);
       return {
@@ -104,16 +131,16 @@ class UserService {
   }
 
   async updateAuthPassword(
-    oldPassword: string,
     newPassword: string,
+    oldPassword: string,
     email: string
   ) {
-    if (!oldPassword || !newPassword) {
+    if (!newPassword || !oldPassword || !email) {
       return {
         success: false,
         data: null,
         error: {
-          message: "Password field is required",
+          message: "Password and email fields are required",
         },
       };
     }
@@ -130,7 +157,7 @@ class UserService {
         };
       }
 
-      const uid = user.uid;
+      const uid = user?.uid;
 
       if (!uid) {
         return {
@@ -176,9 +203,9 @@ class UserService {
     }
   }
 
-  async getUserByEmail(email: string) {
+  async getUserByEmail(email: string): Promise<ApiResponse<UserData>> {
     const snapShotRef = db.collection("users");
-    const user = await snapShotRef
+    await snapShotRef
       .where("email", "==", email)
       .get()
       .then((querySnapshot) => {
@@ -205,8 +232,27 @@ class UserService {
         console.log("Error getting documents: ", error);
         return { success: false, error: error, data: null };
       });
+    return {
+      success: false,
+      data: null,
+      error: {
+        message: "Something went wrong",
+      },
+    };
+  }
 
-    return user;
+  async deleteUser(userID: string) {
+    console.log(userID);
+
+    try {
+      const res = await admin.auth().deleteUser(userID);
+      console.log("user auth Deleted ");
+
+      return { success: true, error: null, authDeleteResponse: res };
+    } catch (err) {
+      console.log("user auth delete error", err);
+      return { success: false, error: err, authDeleteRes: null };
+    }
   }
 }
 const adminService = new UserService();

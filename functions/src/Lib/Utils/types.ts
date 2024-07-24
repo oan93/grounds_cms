@@ -45,6 +45,7 @@ export interface UserData {
   height: number[];
   heightUnit: string;
   ignoreDualSubscriptionTill: Timestamp;
+  subscriptionId: string;
   lastName: string;
   meals: [
     {
@@ -91,4 +92,74 @@ export interface UserData {
 export interface Equipments {
   index: number;
   newValue: string;
+}
+
+export interface ExerciseData {
+  difficulty: string;
+  equipment: string;
+  equipmentList: string[];
+  equipmentTags: string[];
+  exerciseID: string;
+  focus: string;
+  instructions: string[];
+  instructor: string;
+  lowImpact: boolean;
+  name: string;
+  nameTags: string[];
+  secondaryFocus: string[];
+  videos: Video[];
+  objectType: string;
+}
+
+interface Video {
+  angle: string;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+  thumbnail: string;
+  videoURL: string;
+}
+
+export interface WorkoutData {
+  description: string;
+  descriptions: string[];
+  docID: string;
+  equipment: string[];
+  equipmentType: string;
+  featuredProgram: boolean;
+  imageUrl: string;
+  instructor: string;
+  intensity: number;
+  isProgram: boolean;
+  live: boolean;
+  numberOfEquipments: number;
+  numberOfParticipants: number;
+  participants: string[];
+  programFocus: string;
+  programName: string;
+  programOrderBy: number;
+  programType: string;
+  weeks: number;
+  workoutPerWeek: number[];
+  workoutTime: string;
+  objectType: string;
+}
+
+export interface OnDemandData {
+  calorieExp: number;
+  categoryName: string;
+  categoryOrderBy: number;
+  equipment: string[];
+  focus: string;
+  imageUrl: string;
+  instructor: string;
+  intensity: number;
+  isLive: boolean;
+  newArrival: boolean;
+  tags: string[];
+  totalSets: number;
+  workoutName: string;
+  workoutOrderBy: number;
+  workoutTime: string;
+  workoutTimeMin: number;
+  objectType: string;
 }
