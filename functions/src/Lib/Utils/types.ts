@@ -22,6 +22,8 @@ export interface UserData {
   basalMetabolicRate: number;
   blockedList: any[]; // assuming the array contains any type of data
   createdAt: Timestamp;
+  mealDates: string[];
+  singularMeal: {};
   customerId: string;
   dailyMealsCount: number;
   dateOfBirth: Timestamp;
@@ -162,4 +164,38 @@ export interface OnDemandData {
   workoutTime: string;
   workoutTimeMin: number;
   objectType: string;
+}
+
+export interface Nutrients {
+  calories: number;
+  carbs: number;
+  fats: number;
+  formulaVersion: number;
+  proteins: number;
+}
+
+export interface Meal {
+  mealNumber: number;
+  nutrients: Nutrients;
+  userCustomized: boolean;
+  title: string;
+}
+
+export interface Product {
+  createdAt: Timestamp; // Use Date type if necessary
+  favorite: boolean;
+  mealName: string;
+  mealTime: Timestamp;
+  products: any[]; // Define a more specific type if possible
+  updatedAt: Timestamp; // Use Date type if necessary
+}
+
+export interface MealsData {
+  createdAt: Timestamp; // Use Date type if necessary
+  dailyMeals: Product[];
+  meals: Product[];
+  nutrients: Nutrients;
+  userCustomized: boolean;
+  updatedAt: Timestamp; // Use Date type if necessary
+  docId?: string;
 }

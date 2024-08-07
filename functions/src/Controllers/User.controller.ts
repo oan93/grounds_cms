@@ -15,4 +15,11 @@ const updateUserData = async (req: Request, res: Response) => {
   res.json(response);
 };
 
-export { getUserByEmail, updateUserData };
+const duplicateMealPlan = async (req: Request, res: Response) => {
+  const data: UserData = req.body;
+
+  const response = await userService.duplicateMealPlan(data);
+  res.json(response);
+};
+
+export { duplicateMealPlan, getUserByEmail, updateUserData };
