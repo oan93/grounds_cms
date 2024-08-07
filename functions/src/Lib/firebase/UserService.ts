@@ -1,6 +1,12 @@
 import _isEmpty from "lodash/isEmpty";
 import { ApiResponse, MealsData, UserData } from "../Utils/types";
 import { db } from "./getFirebase";
+import { Timestamp } from "firebase-admin/firestore";
+
+import {
+  firebaseTimestampToLocalTime,
+  getFirebaseUtcTimestamp,
+} from "../Utils";
 
 class UserService {
   async getUserByEmail(email: string): Promise<ApiResponse<UserData>> {
@@ -80,6 +86,12 @@ class UserService {
     }
   }
 
+  getFirebaseUtcTimestamp = (timestamp: number | Date) => {
+    const date = new Date(timestamp);
+    const firebaseTimestamp = Timestamp.fromDate(date);
+    return firebaseTimestamp;
+  };
+
   async duplicateMealPlan(
     userData: Partial<UserData>
   ): Promise<ApiResponse<Partial<UserData>>> {
@@ -125,7 +137,22 @@ class UserService {
           docId: docSnapshot.id,
         } as MealsData;
 
-        console.log("this is the mealData", mealData);
+        //! converts firebase timestamp into formatted and utc date
+        const { formattedDate, utcDate } = firebaseTimestampToLocalTime(
+          mealData.createdAt
+        );
+
+        //! converts utc date back to firebase timestamp
+        const firebaseTimestamp = getFirebaseUtcTimestamp(utcDate);
+
+        console.log({ formattedDate, firebaseTimestamp });
+
+        console.log("currentDate", {
+          Timestamp: Timestamp.now(),
+          TimestampMillis: Timestamp.now().toMillis(),
+        });
+
+        // console.log(localDate.format('YYYY-MM-DD h:mm:ss a'));
 
         if (!mealData && !data.singularMeal) {
           return {
@@ -136,11 +163,6 @@ class UserService {
             },
           };
         }
-
-        console.log(
-          "this is the formatted createdAt",
-          mealData.createdAt.toDate()
-        );
 
         // if (mealData && Array.isArray(mealData.meals) && data.singularMeal) {
         //   const mealProduct = data.singularMeal as Product;
