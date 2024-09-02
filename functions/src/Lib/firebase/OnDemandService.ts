@@ -1,5 +1,5 @@
 import _isEmpty from "lodash/isEmpty";
-import { ApiResponse, OnDemandData } from "../Utils/types";
+import { ApiResponse, OnDemandData, SingleWorkoutData } from "../Utils/types";
 import { db } from "./getFirebase";
 
 class OnDemandService {
@@ -91,7 +91,9 @@ class OnDemandService {
     }
   }
 
-  async updateExerciseData(exerciseData: any) {
+  async updateExerciseData(
+    exerciseData: Partial<SingleWorkoutData>
+  ): Promise<ApiResponse<Partial<SingleWorkoutData>>> {
     if (_isEmpty(exerciseData) || !exerciseData.workoutName) {
       return {
         success: false,

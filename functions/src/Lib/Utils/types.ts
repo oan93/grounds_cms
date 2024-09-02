@@ -17,13 +17,13 @@ export type ApiResponse<T> = SuccessResponse<T> | ErrorResponse;
 
 export interface UserData {
   appRatingReviewed: boolean;
+  imageURL: string;
   appRatingSkipped: boolean;
   avatar: string;
   basalMetabolicRate: number;
   blockedList: any[]; // assuming the array contains any type of data
   createdAt: Timestamp;
   mealDates: string[];
-  singularMeal: {};
   customerId: string;
   dailyMealsCount: number;
   dateOfBirth: Timestamp;
@@ -166,36 +166,89 @@ export interface OnDemandData {
   objectType: string;
 }
 
-export interface Nutrients {
+export interface SingleWorkoutData {
+  workoutName: string;
+  circuit: number;
+  exercises: {
+    difficulty: string;
+    docId: string;
+    eachSide: boolean;
+    equipment: string;
+    equipmentTags: string[];
+    exerciseID: string;
+    focus: string;
+    instructions: string[];
+    instructor: string;
+    lowImpact: boolean;
+    name: string;
+    nameTags: string[];
+    reps: number;
+    sec: number;
+    secondaryFocus: string[];
+    videos: {
+      angle: string;
+      createdAt: {
+        _nanoseconds: number;
+        _seconds: number;
+      };
+      thumbnail: string;
+      updatedAt: {
+        _nanoseconds: number;
+        _seconds: number;
+      };
+      videoURL: string;
+    }[];
+  }[];
+  restTime: number;
+  sets: number;
+  objectType: string;
+}
+
+interface Nutrients {
   calories: number;
   carbs: number;
   fats: number;
   formulaVersion: number;
   proteins: number;
-}
-
-export interface Meal {
-  mealNumber: number;
-  nutrients: Nutrients;
   userCustomized: boolean;
-  title: string;
 }
 
-export interface Product {
-  createdAt: Timestamp; // Use Date type if necessary
+interface Product {
+  brandName: string;
+  calories: number;
+  carbs: number;
+  description: string;
+  fats: number;
+  id: string;
+  isCustomItem: boolean;
+  name: string;
+  numberOfUnits: number;
+  pageNumber: number;
+  proteins: number;
+  quantity: number;
+  servingId: string;
+  totalResults: number;
+}
+
+interface Meal {
+  createdAt: Timestamp;
   favorite: boolean;
   mealName: string;
   mealTime: Timestamp;
-  products: any[]; // Define a more specific type if possible
-  updatedAt: Timestamp; // Use Date type if necessary
+  products: Product[];
+  updatedAt: Timestamp;
 }
 
-export interface MealsData {
-  createdAt: Timestamp; // Use Date type if necessary
-  dailyMeals: Product[];
-  meals: Product[];
+interface DailyMeal extends Nutrients {
+  mealNumber: number;
+  mealTime: Timestamp;
+  title: string;
+}
+
+export interface MealPlan {
+  createdAt: Timestamp;
+  dailyMeals: DailyMeal[];
+  meals: Meal[];
   nutrients: Nutrients;
-  userCustomized: boolean;
-  updatedAt: Timestamp; // Use Date type if necessary
-  docId?: string;
+  updatedAt: Timestamp;
 }

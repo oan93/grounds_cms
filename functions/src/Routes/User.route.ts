@@ -1,10 +1,14 @@
 const express = require("express");
 const router = express.Router();
 
-import { getUserByEmail, updateUserData, duplicateMealPlan } from "../Controllers/User.controller";
+import {
+  duplicateMealPlan,
+  getUserByEmail,
+  updateUserData,
+} from "../Controllers/User.controller";
 
 router.post("/update", updateUserData);
 router.get("/", getUserByEmail);
-router.post("/duplicateMeal", duplicateMealPlan)
+router.post("/duplicateMeal", duplicateMealPlan);
 
 export default router;

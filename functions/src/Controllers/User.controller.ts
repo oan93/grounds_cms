@@ -16,10 +16,31 @@ const updateUserData = async (req: Request, res: Response) => {
 };
 
 const duplicateMealPlan = async (req: Request, res: Response) => {
-  const data: UserData = req.body;
+  const { userID, selectedMealTimeList, providedMealTime, mealPlan } = req.body;
 
-  const response = await userService.duplicateMealPlan(data);
+  if (!userID || !selectedMealTimeList || !mealPlan) {
+    res.json({
+      success: false,
+      data: null,
+      error: {
+        message: "Expected fields are coming out null",
+      },
+    });
+  }
+
+  const response = await userService.duplicateMeal({
+    mealPlan,
+    selectedMealTimeList,
+    userID,
+    providedMealTime,
+  });
   res.json(response);
 };
 
+// const updateProfile = async (req: Request, res: Response) => {
+//   const data: UserData = req.body;
+
+//   const response = await userService.updateProfile(data);
+//   res.json(response);
+// };
 export { duplicateMealPlan, getUserByEmail, updateUserData };
